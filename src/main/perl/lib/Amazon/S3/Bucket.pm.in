@@ -692,19 +692,6 @@ sub _get_key {
     last_modified  => ( $response->header('Last-Modified') || $EMPTY ),
   };
 
-  # Validate against data corruption by verifying the MD5 (only if not partial)
-  if ( $method eq 'GET' && $response->code ne $HTTP_PARTIAL_CONTENT ) {
-    my $md5
-      = ( $filename and -f $filename )
-      ? file_md5_hex($filename)
-      : md5_hex( $retval->{value} );
-
-    # Some S3-compatible providers return an all-caps MD5 value in the
-    # etag so it should be lc'd for comparison.
-    croak "Computed and Response MD5's do not match:  $md5 : $etag"
-      if $md5 ne lc $etag;
-  }
-
   foreach my $header ( $response->headers->header_field_names ) {
     next if $header !~ /x-amz-meta-/ixsm;
     $retval->{ lc $header } = $response->header($header);
